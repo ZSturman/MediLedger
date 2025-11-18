@@ -7,21 +7,19 @@
 
 import SwiftUI
 import SwiftData
+import AppIntents
 
 @main
 struct MedTrackerApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+    init() {
+        print(URL.applicationSupportDirectory.path(percentEncoded: false))
+        
+        let container = sharedModelContainer
+        let asyncDependency: @Sendable () async -> ModelContainer = { @MainActor in
+            return container
         }
-    }()
+        AppDependencyManager.shared.add(key: "ModelContainer", dependency: asyncDependency)
+    }
 
     var body: some Scene {
         WindowGroup {

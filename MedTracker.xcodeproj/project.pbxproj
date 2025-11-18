@@ -6,7 +6,20 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EF9311F42D974BB3001129E0 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF9311F32D974BB2001129E0 /* WidgetKit.framework */; };
+		EF9311F62D974BB3001129E0 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF9311F52D974BB3001129E0 /* SwiftUI.framework */; };
+		EF9312052D974BB5001129E0 /* MedTrackerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = EF9311F12D974BB2001129E0 /* MedTrackerWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
+		EF9312032D974BB5001129E0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EFE6BEF42D91F93600B34A92 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EF9311F02D974BB2001129E0;
+			remoteInfo = MedTrackerWidgetExtension;
+		};
 		EFE6BF0C2D91F93900B34A92 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EFE6BEF42D91F93600B34A92 /* Project object */;
@@ -23,15 +36,74 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		EF93120A2D974BB5001129E0 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				EF9312052D974BB5001129E0 /* MedTrackerWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		EF9311F12D974BB2001129E0 /* MedTrackerWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MedTrackerWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF9311F32D974BB2001129E0 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		EF9311F52D974BB3001129E0 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		EF9313302D9758F1001129E0 /* MedTrackerWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MedTrackerWidgetExtension.entitlements; sourceTree = "<group>"; };
 		EFE6BEFC2D91F93600B34A92 /* MedTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MedTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EFE6BF0B2D91F93900B34A92 /* MedTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MedTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EFE6BF152D91F93900B34A92 /* MedTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MedTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EF9312062D974BB5001129E0 /* Exceptions for "MedTrackerWidget" folder in "MedTrackerWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = EF9311F02D974BB2001129E0 /* MedTrackerWidgetExtension */;
+		};
+		EF93120C2D974C54001129E0 /* Exceptions for "MedTracker" folder in "MedTrackerWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Intents.swift,
+				Models/MedEntity.swift,
+				Models/Medication.swift,
+				Models/MedicationActions.swift,
+				SharedModel.swift,
+				Support/Enums.swift,
+			);
+			target = EF9311F02D974BB2001129E0 /* MedTrackerWidgetExtension */;
+		};
+		EF9313322D975997001129E0 /* Exceptions for "MedTracker" folder in "MedTracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = EFE6BEFB2D91F93600B34A92 /* MedTracker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		EF9311F72D974BB3001129E0 /* MedTrackerWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EF9312062D974BB5001129E0 /* Exceptions for "MedTrackerWidget" folder in "MedTrackerWidgetExtension" target */,
+			);
+			path = MedTrackerWidget;
+			sourceTree = "<group>";
+		};
 		EFE6BEFE2D91F93600B34A92 /* MedTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EF9313322D975997001129E0 /* Exceptions for "MedTracker" folder in "MedTracker" target */,
+				EF93120C2D974C54001129E0 /* Exceptions for "MedTracker" folder in "MedTrackerWidgetExtension" target */,
+			);
 			path = MedTracker;
 			sourceTree = "<group>";
 		};
@@ -48,6 +120,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		EF9311EE2D974BB2001129E0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF9311F62D974BB3001129E0 /* SwiftUI.framework in Frameworks */,
+				EF9311F42D974BB3001129E0 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EFE6BEF92D91F93600B34A92 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -72,12 +153,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EF9311F22D974BB2001129E0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EF9311F32D974BB2001129E0 /* WidgetKit.framework */,
+				EF9311F52D974BB3001129E0 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		EFE6BEF32D91F93600B34A92 = {
 			isa = PBXGroup;
 			children = (
+				EF9313302D9758F1001129E0 /* MedTrackerWidgetExtension.entitlements */,
 				EFE6BEFE2D91F93600B34A92 /* MedTracker */,
 				EFE6BF0E2D91F93900B34A92 /* MedTrackerTests */,
 				EFE6BF182D91F93900B34A92 /* MedTrackerUITests */,
+				EF9311F72D974BB3001129E0 /* MedTrackerWidget */,
+				EF9311F22D974BB2001129E0 /* Frameworks */,
 				EFE6BEFD2D91F93600B34A92 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +181,7 @@
 				EFE6BEFC2D91F93600B34A92 /* MedTracker.app */,
 				EFE6BF0B2D91F93900B34A92 /* MedTrackerTests.xctest */,
 				EFE6BF152D91F93900B34A92 /* MedTrackerUITests.xctest */,
+				EF9311F12D974BB2001129E0 /* MedTrackerWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,6 +189,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		EF9311F02D974BB2001129E0 /* MedTrackerWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EF9312072D974BB5001129E0 /* Build configuration list for PBXNativeTarget "MedTrackerWidgetExtension" */;
+			buildPhases = (
+				EF9311ED2D974BB2001129E0 /* Sources */,
+				EF9311EE2D974BB2001129E0 /* Frameworks */,
+				EF9311EF2D974BB2001129E0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				EF9311F72D974BB3001129E0 /* MedTrackerWidget */,
+			);
+			name = MedTrackerWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = MedTrackerWidgetExtension;
+			productReference = EF9311F12D974BB2001129E0 /* MedTrackerWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		EFE6BEFB2D91F93600B34A92 /* MedTracker */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EFE6BF1F2D91F93900B34A92 /* Build configuration list for PBXNativeTarget "MedTracker" */;
@@ -102,10 +218,12 @@
 				EFE6BEF82D91F93600B34A92 /* Sources */,
 				EFE6BEF92D91F93600B34A92 /* Frameworks */,
 				EFE6BEFA2D91F93600B34A92 /* Resources */,
+				EF93120A2D974BB5001129E0 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				EF9312042D974BB5001129E0 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				EFE6BEFE2D91F93600B34A92 /* MedTracker */,
@@ -173,6 +291,9 @@
 				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
+					EF9311F02D974BB2001129E0 = {
+						CreatedOnToolsVersion = 16.3;
+					};
 					EFE6BEFB2D91F93600B34A92 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -203,11 +324,19 @@
 				EFE6BEFB2D91F93600B34A92 /* MedTracker */,
 				EFE6BF0A2D91F93900B34A92 /* MedTrackerTests */,
 				EFE6BF142D91F93900B34A92 /* MedTrackerUITests */,
+				EF9311F02D974BB2001129E0 /* MedTrackerWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		EF9311EF2D974BB2001129E0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EFE6BEFA2D91F93600B34A92 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -232,6 +361,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		EF9311ED2D974BB2001129E0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EFE6BEF82D91F93600B34A92 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -256,6 +392,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		EF9312042D974BB5001129E0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EF9311F02D974BB2001129E0 /* MedTrackerWidgetExtension */;
+			targetProxy = EF9312032D974BB5001129E0 /* PBXContainerItemProxy */;
+		};
 		EFE6BF0D2D91F93900B34A92 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = EFE6BEFB2D91F93600B34A92 /* MedTracker */;
@@ -269,6 +410,62 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		EF9312082D974BB5001129E0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MedTrackerWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MF8J7AY2X3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MedTrackerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MediLedger Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = zacharysturman.MediLedger.MediLedgerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		EF9312092D974BB5001129E0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MedTrackerWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MF8J7AY2X3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MedTrackerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MediLedger Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = zacharysturman.MediLedger.MediLedgerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		EFE6BF1D2D91F93900B34A92 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -393,13 +590,18 @@
 		EFE6BF202D91F93900B34A92 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MediLedger;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = MedTracker/MedTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = MF8J7AY2X3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MedTracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MediLedger;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -409,8 +611,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = zacharysturman.MedTracker;
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = zacharysturman.MediLedger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -421,13 +623,18 @@
 		EFE6BF212D91F93900B34A92 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MediLedger;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = MedTracker/MedTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = MF8J7AY2X3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MedTracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MediLedger;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -437,8 +644,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = zacharysturman.MedTracker;
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = zacharysturman.MediLedger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -521,6 +728,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		EF9312072D974BB5001129E0 /* Build configuration list for PBXNativeTarget "MedTrackerWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF9312082D974BB5001129E0 /* Debug */,
+				EF9312092D974BB5001129E0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		EFE6BEF72D91F93600B34A92 /* Build configuration list for PBXProject "MedTracker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -1,0 +1,90 @@
+{
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
+  },
+  "groups" : [
+    {
+      "blend-mode" : "normal",
+      "blur-material" : 0.5,
+      "hidden" : false,
+      "layers" : [
+        {
+          "fill" : {
+            "solid" : "display-p3:0.84608,1.00000,0.98477,1.00000"
+          },
+          "image-name" : "Pill Top.svg",
+          "name" : "Pill Top",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              110.625,
+              -113.0703125
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "solid" : "display-p3:0.18019,0.78686,1.00000,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "Pill Bottom.svg",
+          "name" : "Pill Bottom",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -127.109375,
+              125.3359375
+            ]
+          }
+        }
+      ],
+      "lighting" : "individual",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.9
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.4
+      }
+    },
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "fill" : {
+            "solid" : "display-p3:0.81100,0.87906,0.84885,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "BG Lines.svg",
+          "name" : "BG Lines",
+          "opacity" : 0.8,
+          "position" : {
+            "scale" : 0.7,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
