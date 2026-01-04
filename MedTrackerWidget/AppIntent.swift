@@ -11,6 +11,9 @@ import SwiftData
 
 
 enum WidgetDisplay: String, AppEnum {
+    // Special - no content
+    case none = "None"
+    
     // Universal (both prescription and non-prescription)
     case leftPerDay = "Left per day"
     case lastTookAt = "Last took at"
@@ -22,7 +25,6 @@ enum WidgetDisplay: String, AppEnum {
     
     // Goal-based (both types, requires goal to be set)
     case goalProgress = "Goal progress"
-    case adherenceStreak = "Adherence streak"
     
     // Prescription-specific
     case dailyAverageSinceRefill = "Average since refill"
@@ -40,6 +42,9 @@ enum WidgetDisplay: String, AppEnum {
 
     static var caseDisplayRepresentations: [WidgetDisplay: DisplayRepresentation] {
         [
+            // No Content
+            .none: "No Content",
+            
             // Universal
             .leftPerDay: "Pills Per Day Left",
             .lastTookAt: "Last Intake Time",
@@ -51,7 +56,6 @@ enum WidgetDisplay: String, AppEnum {
             
             // Goal-based
             .goalProgress: "Goal Progress",
-            .adherenceStreak: "Current Streak",
             
             // Prescription
             .dailyAverageSinceRefill: "Average Since Refill",

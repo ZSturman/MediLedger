@@ -35,10 +35,28 @@ struct TakeHalf: AppIntent {
         let meds = try context.fetch(fetchDescriptor)
         
         if let med = meds.first {
+            // Calculate optimistic values before the action
+            let halfDoseMg = med.mgPerPill * 0.5
+            let optimisticTotalMg = max(0, med.totalMgRemaining - halfDoseMg)
+            let optimisticPills = med.mgPerPill > 0 ? optimisticTotalMg / med.mgPerPill : 0
+            
+            // Save optimistic update for widget to read immediately
+            let pendingUpdate = PendingMedicationUpdate(
+                medicationId: medID,
+                updatedPillsRemaining: optimisticPills,
+                updatedTotalMgRemaining: optimisticTotalMg
+            )
+            sharedUserDefaults?.savePendingUpdate(pendingUpdate)
+            
             try med.takeMedication(dose: 0.5, unit: .pill, context: context)
             try? context.save()
             
             WidgetCenter.shared.reloadAllTimelines()
+            
+            // Open the app to show the medication
+            if let url = URL(string: "medtracker://medication/\(medID)") {
+                try await OpenURLIntent(url).perform()
+            }
         }
         
         return .result()
@@ -74,10 +92,28 @@ struct TakeMedication: AppIntent {
         let meds = try context.fetch(fetchDescriptor)
         
         if let med = meds.first {
+            // Calculate optimistic values before the action
+            let fullDoseMg = med.mgPerPill
+            let optimisticTotalMg = max(0, med.totalMgRemaining - fullDoseMg)
+            let optimisticPills = med.mgPerPill > 0 ? optimisticTotalMg / med.mgPerPill : 0
+            
+            // Save optimistic update for widget to read immediately
+            let pendingUpdate = PendingMedicationUpdate(
+                medicationId: medID,
+                updatedPillsRemaining: optimisticPills,
+                updatedTotalMgRemaining: optimisticTotalMg
+            )
+            sharedUserDefaults?.savePendingUpdate(pendingUpdate)
+            
             // Defaults to 1 pill (full dose)
             try med.takeMedication(context: context)
             try? context.save()
             WidgetCenter.shared.reloadAllTimelines()
+            
+            // Open the app to show the medication
+            if let url = URL(string: "medtracker://medication/\(medID)") {
+                try await OpenURLIntent(url).perform()
+            }
         }
         
         return .result()
@@ -110,6 +146,11 @@ struct GetRefill: AppIntent {
         if let med = meds.first {
             try med.refillMedication(context: context)
             try? context.save()
+            
+            // Open the app to show the medication
+            if let url = URL(string: "medtracker://medication/\(medID)") {
+                try await OpenURLIntent(url).perform()
+            }
         }
         
         return .result()

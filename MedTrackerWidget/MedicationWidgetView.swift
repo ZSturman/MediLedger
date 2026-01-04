@@ -57,31 +57,35 @@ struct MedicationWidgetView: View {
             HStack(spacing: 12) {
                 Spacer()
                 Button(intent: TakeHalf(medication: med)) {
-                    Image(systemName: "capsule.righthalf.filled")
+                    Image(systemName: med.pillForm.sfSymbolNameHalf)
                         .font(.system(size: 16))
+                        .symbolRenderingMode(.hierarchical)
                 }
                 .labelStyle(.iconOnly)
                 .widgetAccentable()
-                .frame(width: 32, height: 32)
+                .frame(width: 36, height: 36)
                 .background(
                     Circle()
                         .fill(Color.accentColor.opacity(0.15))
-                        .frame(width: 28, height: 28)
+                        .frame(width: 32, height: 32)
                 )
+                .symbolEffect(.bounce, options: .speed(1.5))
              
                 Spacer()
                 Button(intent: TakeMedication(medication: med)) {
-                    Image(systemName: "capsule.fill")
+                    Image(systemName: med.pillForm.sfSymbolName)
                         .font(.system(size: 16))
+                        .symbolRenderingMode(.hierarchical)
                 }
                 .labelStyle(.iconOnly)
                 .widgetAccentable()
-                .frame(width: 32, height: 32)
+                .frame(width: 36, height: 36)
                 .background(
                     Circle()
                         .fill(Color.accentColor.opacity(0.15))
-                        .frame(width: 28, height: 28)
+                        .frame(width: 32, height: 32)
                 )
+                .symbolEffect(.bounce, options: .speed(1.5))
           
                 Spacer()
             }
@@ -89,11 +93,14 @@ struct MedicationWidgetView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: med.totalMgRemaining)
         .animation(.easeInOut(duration: 0.3), value: logs.count)
+        .widgetURL(URL(string: "medtracker://medication/\(med.id)"))
     }
     
     // Helper to generate unique IDs for animation purposes
     private func getPrimaryValueID() -> String {
         switch primary {
+        case .none:
+            return "none"
         case .leftPerDay:
             return "\(med.pillsPerDayLeft)"
         case .totalLeft:
@@ -111,6 +118,8 @@ struct MedicationWidgetView: View {
     
     private func getSecondaryValueID() -> String {
         switch secondary {
+        case .none:
+            return "none"
         case .leftPerDay:
             return "\(med.pillsPerDayLeft)"
         case .totalLeft:
@@ -129,6 +138,11 @@ struct MedicationWidgetView: View {
     @ViewBuilder
     private func renderWidgetDisplay(_ display: WidgetDisplay, isSecondary: Bool) -> some View {
         switch display {
+        // No Content - empty display
+        case .none:
+            Color.clear
+                .frame(height: isSecondary ? 12 : 0)
+            
         // Universal
         case .leftPerDay:
             LeftPerDay(med: med, isSecondary: isSecondary)
@@ -148,8 +162,6 @@ struct MedicationWidgetView: View {
         // Goal-based
         case .goalProgress:
             GoalProgressView(med: med, isSecondary: isSecondary)
-        case .adherenceStreak:
-            AdherenceStreakView(med: med, isSecondary: isSecondary)
             
         // Prescription-specific
         case .dailyAverageSinceRefill:
@@ -465,57 +477,6 @@ struct GoalProgressView: View {
                         .font(.title2)
                         .bold()
                 } else {
-                    Text("No Goal")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-    }
-}
-
-struct AdherenceStreakView: View {
-    var med: MedEntity
-    var isSecondary: Bool = false
-    
-    var streakText: String {
-        guard let streak = med.adherenceStreak, streak > 0 else {
-            return "0"
-        }
-        return "\(streak)"
-    }
-    
-    var hasGoal: Bool {
-        med.goalProgressTarget != nil
-    }
-    
-    var body: some View {
-        if isSecondary {
-            if hasGoal {
-                Text("🔥 \(streakText) day streak")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            } else {
-                Text("No goal set")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-        } else {
-            VStack {
-                if hasGoal {
-                    Text("Streak")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    HStack(spacing: 4) {
-                        Text("🔥")
-                        Text(streakText)
-                            .font(.title)
-                            .bold()
-                    }
-                } else {
-                    Text("Streak")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                     Text("No Goal")
                         .font(.title3)
                         .foregroundColor(.secondary)

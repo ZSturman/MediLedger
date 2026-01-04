@@ -20,59 +20,85 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedMed) { // Bind the selection
-                ForEach(meds) { med in
-                    NavigationLink(value: med) {  // Use the value initializer
-                        VStack(alignment: .leading) {
-                            Text(med.name)
-                                .font(.headline)
-                            if let lastFilled = med.lastFilledOn {
+
+                List(selection: $selectedMed) { // Bind the selection
+                    if meds.count == 0 {
+                        VStack(spacing: 16) {
+                            Image(systemName: "pills.fill")
+                                .font(.system(size: 44))
+                                .foregroundStyle(.secondary)
+
+                            Text("No Medications")
+                                .font(.title2)
+                                .bold()
+
+                            Text("Add a medication to get started.")
+                                .foregroundStyle(.secondary)
+
+                            Button {
+                                newMedicationSheetIsPresented.toggle()
+                            } label: {
+                                Label("Add Medication", systemImage: "plus")
+                            }
+                     
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    } else {
+                    ForEach(meds) { med in
+                        NavigationLink(value: med) {  // Use the value initializer
+                            VStack(alignment: .leading) {
+                                Text(med.name)
+                                    .font(.headline)
+                                if let lastFilled = med.lastFilledOn {
+                                    HStack {
+                                        Text("Last filled:")
+                                        Text(lastFilled, format: Date.FormatStyle(date: .numeric, time: .omitted))
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                                 HStack {
-                                    Text("Last filled:")
-                                    Text(lastFilled, format: Date.FormatStyle(date: .numeric, time: .omitted))
+                                    Text("Pills/Day Left:")
+                                    Text("\(med.pillsPerDayLeft, specifier: "%.1f")")
                                         .foregroundColor(.secondary)
                                 }
                             }
-                            HStack {
-                                Text("Pills/Day Left:")
-                                Text("\(med.pillsPerDayLeft, specifier: "%.1f")")
-                                    .foregroundColor(.secondary)
+                        }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    modelContext.delete(med)
+                                }
+                            } label: {
+                                Text("Delete")
                             }
                         }
-                    }
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            withAnimation {
-                                modelContext.delete(med)
+                        .swipeActions(edge: .leading) {
+                            Button("Take") {
+                                takeMedication(med)
                             }
-                        } label: {
-                            Text("Delete")
+                            .tint(.green)
                         }
-                    }
-                    .swipeActions(edge: .leading) {
-                        Button("Take") {
-                            takeMedication(med)
-                        }
-                        .tint(.green)
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            withAnimation {
-                                modelContext.delete(med)
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    modelContext.delete(med)
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
                         }
+                        
                     }
-  
+                    .onDelete(perform: deleteItems)
                 }
-                .onDelete(perform: deleteItems)
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
-                ToolbarItem {
+                ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button {
                             exportAllLogs(format: .csv)
@@ -90,7 +116,7 @@ struct ContentView: View {
                     }
                     .disabled(meds.isEmpty)
                 }
-                ToolbarItem {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         newMedicationSheetIsPresented.toggle()
                     } label: {
@@ -114,6 +140,22 @@ struct ContentView: View {
                     shareSheetURL = nil
                 }
             }
+        }
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
+    }
+    
+    private func handleDeepLink(_ url: URL) {
+        // Handle medtracker://medication/{id} URLs
+        guard url.scheme == "medtracker",
+              url.host == "medication" else { return }
+        
+        let medId = url.pathComponents.dropFirst().joined(separator: "/")
+        
+        // Find the medication by ID and select it
+        if let medication = meds.first(where: { $0.id == medId }) {
+            selectedMed = medication
         }
     }
     
@@ -149,3 +191,4 @@ struct ContentView: View {
 //    ContentView()
 //        .modelContainer(for: Med.self, inMemory: true)
 //}
+

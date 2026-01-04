@@ -27,6 +27,8 @@ struct MedicationEntityQuery: EntityQuery {
                 id: med.id,
                 name: med.name,
                 medicationType: med.medicationType,
+                pillForm: med.pillForm,
+                nextDoseTime: med.calculatedNextDoseTime,
                 lastFilledOn: med.lastFilledOn,
                 nextFillDate: med.nextFillDate,
                 totalMgRemaining: med.totalMgRemaining,
@@ -38,8 +40,7 @@ struct MedicationEntityQuery: EntityQuery {
                 pillsRemaining: med.pillsRemaining,
                 refillsRemaining: med.refillsRemaining,
                 goalProgressCompleted: goalProgress?.completed,
-                goalProgressTarget: goalProgress?.target,
-                adherenceStreak: med.intakeGoal != nil ? med.adherenceStreak() : nil
+                goalProgressTarget: goalProgress?.target
             )
         }
         
@@ -63,6 +64,8 @@ extension MedicationEntityQuery: EnumerableEntityQuery {
                 id: med.id,
                 name: med.name,
                 medicationType: med.medicationType,
+                pillForm: med.pillForm,
+                nextDoseTime: med.calculatedNextDoseTime,
                 lastFilledOn: med.lastFilledOn,
                 nextFillDate: med.nextFillDate,
                 totalMgRemaining: med.totalMgRemaining,
@@ -74,8 +77,7 @@ extension MedicationEntityQuery: EnumerableEntityQuery {
                 pillsRemaining: med.pillsRemaining,
                 refillsRemaining: med.refillsRemaining,
                 goalProgressCompleted: goalProgress?.completed,
-                goalProgressTarget: goalProgress?.target,
-                adherenceStreak: med.intakeGoal != nil ? med.adherenceStreak() : nil
+                goalProgressTarget: goalProgress?.target
             )
         }
     }
@@ -90,6 +92,8 @@ extension MedicationEntityQuery: EnumerableEntityQuery {
                 id: med.id,
                 name: med.name,
                 medicationType: med.medicationType,
+                pillForm: med.pillForm,
+                nextDoseTime: med.calculatedNextDoseTime,
                 lastFilledOn: med.lastFilledOn,
                 nextFillDate: med.nextFillDate,
                 totalMgRemaining: med.totalMgRemaining,
@@ -101,8 +105,7 @@ extension MedicationEntityQuery: EnumerableEntityQuery {
                 pillsRemaining: med.pillsRemaining,
                 refillsRemaining: med.refillsRemaining,
                 goalProgressCompleted: goalProgress?.completed,
-                goalProgressTarget: goalProgress?.target,
-                adherenceStreak: med.intakeGoal != nil ? med.adherenceStreak() : nil
+                goalProgressTarget: goalProgress?.target
             )
         }
     }
@@ -118,6 +121,8 @@ struct MedEntity: AppEntity {
     var id: String
     var name: String
     var medicationType: MedicationType
+    var pillForm: MedicationForm
+    var nextDoseTime: Date?
     var lastFilledOn: Date?
     var nextFillDate: Date?
     var totalMgRemaining: Double
@@ -132,7 +137,6 @@ struct MedEntity: AppEntity {
     // Goal-related properties
     var goalProgressCompleted: Int?
     var goalProgressTarget: Int?
-    var adherenceStreak: Int?
     
     static var defaultQuery = MedicationEntityQuery()
     

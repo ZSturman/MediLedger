@@ -17,7 +17,10 @@ final class Med {
     
     // MARK: - Medication Type & Core Details
     private var medicationTypeRaw: String = MedicationType.prescription.rawValue
-    var pillForm: String?                               // NEW: "Tablet", "Capsule", "Gummy", etc.
+    private var pillFormRaw: String = MedicationForm.tablet.rawValue  // Changed: Use enum storage
+    
+    // MARK: - Scheduling
+    var nextDoseTime: Date?                             // NEW: Next scheduled dose time
     
     // MARK: - Date Information (Optional for non-prescription)
     var lastFilledOn: Date?                             // CHANGED: Optional for non-prescription
@@ -63,6 +66,16 @@ final class Med {
         }
         set {
             medicationTypeRaw = newValue.rawValue
+        }
+    }
+    
+    // MARK: - Computed: MedicationForm
+    var pillForm: MedicationForm {
+        get {
+            MedicationForm(rawValue: pillFormRaw) ?? .tablet
+        }
+        set {
+            pillFormRaw = newValue.rawValue
         }
     }
     
@@ -117,6 +130,50 @@ final class Med {
         return totalMgRemaining / mgPerPill
     }
     
+    // MARK: - Computed: Calculated Next Dose Time
+    var calculatedNextDoseTime: Date? {
+        // If manually set, use that
+        if let manualTime = nextDoseTime {
+            return manualTime
+        }
+        
+        // Otherwise, calculate from goal's timesOfDay
+        guard let goal = intakeGoal,
+              let timesOfDay = goal.timesOfDay,
+              !timesOfDay.isEmpty else {
+            return nil
+        }
+        
+        let now = Date()
+        let calendar = Calendar.current
+        
+        // Find the next scheduled time
+        for timeComponents in timesOfDay.sorted(by: { t1, t2 in
+            (t1.hour ?? 0) * 60 + (t1.minute ?? 0) < (t2.hour ?? 0) * 60 + (t2.minute ?? 0)
+        }) {
+            if let scheduledTime = calendar.date(bySettingHour: timeComponents.hour ?? 0,
+                                                   minute: timeComponents.minute ?? 0,
+                                                   second: 0,
+                                                   of: now) {
+                if scheduledTime > now {
+                    return scheduledTime
+                }
+            }
+        }
+        
+        // If all times today have passed, return first time tomorrow
+        if let firstTime = timesOfDay.first,
+           let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
+           let scheduledTime = calendar.date(bySettingHour: firstTime.hour ?? 0,
+                                              minute: firstTime.minute ?? 0,
+                                              second: 0,
+                                              of: tomorrow) {
+            return scheduledTime
+        }
+        
+        return nil
+    }
+    
     // MARK: - Initializers
     
     /// Standard initializer for new medications
@@ -124,7 +181,8 @@ final class Med {
         name: String,
         desc: String? = nil,
         medicationType: MedicationType = .prescription,
-        pillForm: String? = nil,
+        pillForm: MedicationForm = .tablet,
+        nextDoseTime: Date? = nil,
         lastFilledOn: Date? = nil,
         nextFillDate: Date? = nil,
         totalMgRemaining: Double,
@@ -150,6 +208,7 @@ final class Med {
         self.desc = desc
         self.medicationType = medicationType
         self.pillForm = pillForm
+        self.nextDoseTime = nextDoseTime
         self.lastFilledOn = lastFilledOn
         self.nextFillDate = nextFillDate
         self.totalMgRemaining = totalMgRemaining

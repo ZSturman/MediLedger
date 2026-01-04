@@ -24,6 +24,11 @@ struct MedicationDescriptionMainContent: View {
     @State private var displayUnit: DisplayUnit = .mg
     @State private var editDisplayUnit: DisplayUnit = .mg
     @State private var editDose: Double = 0
+    
+    // Remaining amount editing
+    @State private var remainingUnit: DosageUnit = .pill
+    @State private var remainingValue: Double = 0
+    @State private var showEditRemainingSheet: Bool = false
 
     // Formatting and conversion helpers
     private func cleanNumber(_ value: Double, maxFractionDigits: Int = 2) -> String {
@@ -37,6 +42,17 @@ struct MedicationDescriptionMainContent: View {
     }
     private func pillsFromMg(_ mg: Double) -> Double { guard med.mgPerPill > 0 else { return 0 }; return mg / med.mgPerPill }
     private func mgFromPills(_ pills: Double) -> Double { return pills * med.mgPerPill }
+    
+    private func convertRemainingToMg(_ amount: Double, unit: DosageUnit) -> Double {
+        switch unit {
+        case .mg:
+            return amount
+        case .pill:
+            return amount * med.mgPerPill
+        case .ml, .spray, .drop, .puff, .application:
+            return amount * med.mgPerPill
+        }
+    }
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -94,20 +110,84 @@ struct MedicationDescriptionMainContent: View {
                                 .font(.body)
                                 .textFieldStyle(.roundedBorder)
                         }, label: { Text("Name") })
+                        
+                        LabeledContent(content: {
+                            if let descBinding = Binding($med.desc) {
+                                TextField("Description", text: descBinding, axis: .vertical)
+                                    .font(.body)
+                                    .textFieldStyle(.roundedBorder)
+                                    .lineLimit(2...4)
+                            } else {
+                                Button("Add Description") {
+                                    med.desc = ""
+                                }
+                            }
+                        }, label: { Text("Description") })
+                        
+                        LabeledContent(content: {
+                            Picker("Type", selection: $med.medicationType) {
+                                ForEach(MedicationType.allCases) { type in
+                                    Text(type.rawValue).tag(type)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                        }, label: { Text("Type") })
+                        
+                        LabeledContent(content: {
+                            Picker("Form", selection: $med.pillForm) {
+                                ForEach(MedicationForm.allCases) { form in
+                                    Text(form.rawValue).tag(form)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                        }, label: { Text("Form") })
+                        
                         LabeledContent(content: {
                             TextField("Dosage (mg)", value: $med.mgPerPill, format: .number)
                                 .font(.body)
                                 .textFieldStyle(.roundedBorder)
                         }, label: { Text("Dosage (mg)") })
                         
+                        LabeledContent(content: {
+                            HStack {
+                                if let dailyDosageBinding = Binding($med.dailyDosage) {
+                                    TextField("Amount", value: dailyDosageBinding, format: .number)
+                                        .font(.body)
+                                        .textFieldStyle(.roundedBorder)
+                                        .frame(maxWidth: 100)
+                                    
+                                    if let unitBinding = Binding($med.dailyDosageUnit) {
+                                        Picker("Unit", selection: unitBinding) {
+                                            ForEach(DosageUnit.allCases) { unit in
+                                                Text(unit.rawValue).tag(unit)
+                                            }
+                                        }
+                                        .pickerStyle(.menu)
+                                    }
+                                } else {
+                                    Button("Set Daily Dosage") {
+                                        med.dailyDosage = 1.0
+                                        med.dailyDosageUnit = .pill
+                                    }
+                                }
+                            }
+                        }, label: { Text("Daily Dosage") })
+                        
                         if med.medicationType == .prescription {
+                            Divider()
+                            
+                            Text("Prescription Details")
+                                .font(.headline)
+                                .padding(.top, 8)
+                            
                             LabeledContent(content: {
                                 if let lastFilled = Binding($med.lastFilledOn) {
                                     DatePicker("", selection: lastFilled, displayedComponents: .date)
                                         .labelsHidden()
                                 } else {
-                                    Text("Not set")
-                                        .foregroundColor(.secondary)
+                                    Button("Set Date") {
+                                        med.lastFilledOn = Date()
+                                    }
                                 }
                             }, label: { Text("Last Filled") })
                             
@@ -117,22 +197,177 @@ struct MedicationDescriptionMainContent: View {
                                         .font(.body)
                                         .textFieldStyle(.roundedBorder)
                                 } else {
-                                    Text("Not set")
-                                        .foregroundColor(.secondary)
+                                    Button("Set Days Supply") {
+                                        med.numberOfDaysSupply = 30
+                                    }
                                 }
                             }, label: { Text("Days Supply") })
+                            
+                            LabeledContent(content: {
+                                if let prescriberBinding = Binding($med.prescriberName) {
+                                    TextField("Prescriber", text: prescriberBinding)
+                                        .font(.body)
+                                        .textFieldStyle(.roundedBorder)
+                                } else {
+                                    Button("Add Prescriber") {
+                                        med.prescriberName = ""
+                                    }
+                                }
+                            }, label: { Text("Prescriber") })
+                            
+                            LabeledContent(content: {
+                                if let pharmacyBinding = Binding($med.pharmacyName) {
+                                    TextField("Pharmacy", text: pharmacyBinding)
+                                        .font(.body)
+                                        .textFieldStyle(.roundedBorder)
+                                } else {
+                                    Button("Add Pharmacy") {
+                                        med.pharmacyName = ""
+                                    }
+                                }
+                            }, label: { Text("Pharmacy") })
+                            
+                            LabeledContent(content: {
+                                if let rxBinding = Binding($med.rxNumber) {
+                                    TextField("Rx Number", text: rxBinding)
+                                        .font(.body)
+                                        .textFieldStyle(.roundedBorder)
+                                } else {
+                                    Button("Add Rx Number") {
+                                        med.rxNumber = ""
+                                    }
+                                }
+                            }, label: { Text("Rx Number") })
+                            
+                            LabeledContent(content: {
+                                if let refillsBinding = Binding($med.refillsRemaining) {
+                                    Stepper("\(refillsBinding.wrappedValue)", value: refillsBinding, in: 0...99)
+                                } else {
+                                    Button("Set Refills") {
+                                        med.refillsRemaining = 0
+                                    }
+                                }
+                            }, label: { Text("Refills Remaining") })
                         }
+                        
+                        if med.medicationType == .nonPrescription {
+                            Divider()
+                            
+                            Text("Product Details")
+                                .font(.headline)
+                                .padding(.top, 8)
+                            
+                            LabeledContent(content: {
+                                if let brandBinding = Binding($med.brandName) {
+                                    TextField("Brand", text: brandBinding)
+                                        .font(.body)
+                                        .textFieldStyle(.roundedBorder)
+                                } else {
+                                    Button("Add Brand") {
+                                        med.brandName = ""
+                                    }
+                                }
+                            }, label: { Text("Brand Name") })
+                            
+                            LabeledContent(content: {
+                                if let typeBinding = Binding($med.supplementType) {
+                                    TextField("Supplement Type", text: typeBinding)
+                                        .font(.body)
+                                        .textFieldStyle(.roundedBorder)
+                                } else {
+                                    Button("Add Type") {
+                                        med.supplementType = ""
+                                    }
+                                }
+                            }, label: { Text("Supplement Type") })
+                            
+                            LabeledContent(content: {
+                                if let servingSizeBinding = Binding($med.servingSize) {
+                                    Stepper("\(servingSizeBinding.wrappedValue)", value: servingSizeBinding, in: 1...10)
+                                } else {
+                                    Button("Set Serving Size") {
+                                        med.servingSize = 1
+                                    }
+                                }
+                            }, label: { Text("Serving Size") })
+                            
+                            LabeledContent(content: {
+                                if let servingsBinding = Binding($med.servingsPerContainer) {
+                                    TextField("Servings", value: servingsBinding, format: .number)
+                                        .font(.body)
+                                        .textFieldStyle(.roundedBorder)
+                                } else {
+                                    Button("Set Servings") {
+                                        med.servingsPerContainer = 30
+                                    }
+                                }
+                            }, label: { Text("Servings/Container") })
+                            
+                            LabeledContent(content: {
+                                if let locationBinding = Binding($med.purchaseLocation) {
+                                    TextField("Location", text: locationBinding)
+                                        .font(.body)
+                                        .textFieldStyle(.roundedBorder)
+                                } else {
+                                    Button("Add Purchase Location") {
+                                        med.purchaseLocation = ""
+                                    }
+                                }
+                            }, label: { Text("Purchase Location") })
+                            
+                            LabeledContent(content: {
+                                if let expirationBinding = Binding($med.expirationDate) {
+                                    DatePicker("", selection: expirationBinding, displayedComponents: .date)
+                                        .labelsHidden()
+                                } else {
+                                    Button("Set Expiration") {
+                                        med.expirationDate = Calendar.current.date(byAdding: .year, value: 1, to: Date())
+                                    }
+                                }
+                            }, label: { Text("Expiration Date") })
+                        }
+                        
+                        Divider()
+                        
+                        Text("Scheduling")
+                            .font(.headline)
+                            .padding(.top, 8)
+                        
+                        LabeledContent(content: {
+                            if let nextDoseBinding = Binding($med.nextDoseTime) {
+                                DatePicker("", selection: nextDoseBinding, displayedComponents: [.date, .hourAndMinute])
+                                    .labelsHidden()
+                            } else {
+                                Button("Set Next Dose Time") {
+                                    med.nextDoseTime = Date()
+                                }
+                            }
+                        }, label: { Text("Next Dose Time") })
                         
                         LabeledContent(content: {
                             TextField("Initial Pill Count", value: $med.initialPillCount, format: .number)
                                 .font(.body)
                                 .textFieldStyle(.roundedBorder)
                         }, label: { Text("Initial Pill Count") })
+                        
                         LabeledContent(content: {
-                            TextField("Total mg Remaining", value: $med.totalMgRemaining, format: .number)
-                                .font(.body)
-                                .textFieldStyle(.roundedBorder)
-                        }, label: { Text("Total mg Remaining") })
+                            Button(action: {
+                                remainingUnit = .pill
+                                remainingValue = pillsFromMg(med.totalMgRemaining)
+                                showEditRemainingSheet = true
+                            }) {
+                                HStack {
+                                    Text("\(cleanNumber(med.totalMgRemaining)) mg")
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: "pencil.circle.fill")
+                                        .foregroundColor(.accentColor)
+                                        .font(.title3)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }, label: { Text("Remaining") })
                     }
                     .padding(.vertical, 2)
                 }
@@ -227,6 +462,53 @@ struct MedicationDescriptionMainContent: View {
         .onChange(of: selectedHistoryFilter) { _, _ in
             logsToShow = logsPageSize
         }
+        .sheet(isPresented: $showEditRemainingSheet) {
+            NavigationStack {
+                Form {
+                    Section(header: Text("Update Remaining Amount")) {
+                        HStack {
+                            Text("Amount:")
+                            Spacer()
+                            TextField("", value: $remainingValue, format: .number)
+                                .multilineTextAlignment(.trailing)
+                                .keyboardType(.decimalPad)
+                                .frame(width: 100)
+                        }
+                        
+                        Picker("Unit", selection: $remainingUnit) {
+                            ForEach(DosageUnit.allCases) { unit in
+                                Text(unit.rawValue).tag(unit)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        
+                        HStack {
+                            Text("Equals:")
+                            Spacer()
+                            Text("\(convertRemainingToMg(remainingValue, unit: remainingUnit), specifier: "%.1f") mg")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .navigationTitle("Edit Remaining")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            showEditRemainingSheet = false
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            let newMgValue = convertRemainingToMg(remainingValue, unit: remainingUnit)
+                            med.totalMgRemaining = newMgValue
+                            showEditRemainingSheet = false
+                        }
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+        }
         .sheet(item: $editingLog) { log in
             NavigationStack {
                 VStack {
@@ -240,20 +522,45 @@ struct MedicationDescriptionMainContent: View {
                             DatePicker("Date", selection: $editTimestamp, displayedComponents: .date)
                             DatePicker("Time", selection: $editTimestamp, displayedComponents: .hourAndMinute)
 
-                            // Amount + inline unit menu
-                            HStack {
-                                Picker("", selection: $editDisplayUnit) {
-                                    Text("mg").tag(DisplayUnit.mg)
-                                    Text("pills").tag(DisplayUnit.pills)
+                            // Amount + inline unit menu with +/- buttons
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Picker("", selection: $editDisplayUnit) {
+                                        Text("mg").tag(DisplayUnit.mg)
+                                        Text("pills").tag(DisplayUnit.pills)
+                                    }
+                                    .labelsHidden()
+                                    .pickerStyle(.menu)
+                                    Spacer()
+                                    
+                                    // Decrement button
+                                    Button(action: {
+                                        let increment = editDisplayUnit == .pills ? 0.5 : med.mgPerPill / 2
+                                        editDose = max(0, editDose - increment)
+                                    }) {
+                                        Image(systemName: "minus.circle.fill")
+                                            .font(.title2)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .buttonStyle(.plain)
+                                    
+                                    TextField("Amount", value: $editDose, format: .number)
+                                        .keyboardType(.decimalPad)
+                                        .multilineTextAlignment(.center)
+                                        .frame(width: 80)
+                                        .textFieldStyle(.roundedBorder)
+                                    
+                                    // Increment button
+                                    Button(action: {
+                                        let increment = editDisplayUnit == .pills ? 0.5 : med.mgPerPill / 2
+                                        editDose += increment
+                                    }) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.title2)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .labelsHidden()
-                                .pickerStyle(.menu)
-                                Spacer()
-                                TextField("Amount", value: $editDose, format: .number)
-                                    .keyboardType(.decimalPad)
-                                    .multilineTextAlignment(.trailing)
-
-
                             }
 
                             if editDisplayUnit == .pills && med.mgPerPill == 0 {

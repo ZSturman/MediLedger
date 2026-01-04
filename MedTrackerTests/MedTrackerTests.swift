@@ -769,5 +769,303 @@ struct MedTrackerTests {
         #expect(secondLog.totalMgRemaining == 560.0)
         #expect(med.totalMgRemaining == 560.0)
     }
+    
+    // MARK: - Export Tests
+    
+    @Test("Export single medication as CSV creates valid file")
+    @MainActor
+    func testExportSingleMedicationAsCSV() throws {
+        let container = try createTestContainer()
+        let context = ModelContext(container)
+        
+        let med = createTestPrescriptionMed(context: context)
+        
+        // Add some logs
+        try med.takeMedication(dose: 1, unit: .pill, context: context)
+        try med.takeMedication(dose: 0.5, unit: .pill, context: context)
+        try med.refillMedication(context: context)
+        
+        // Export to CSV
+        guard let fileURL = MedicationLogExporter.exportLogs(for: med, format: .csv) else {
+            Issue.record("Failed to export CSV")
+            return
+        }
+        
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: fileURL.path))
+        
+        // Read and verify content
+        let csvContent = try String(contentsOf: fileURL, encoding: .utf8)
+        
+        // Check header
+        #expect(csvContent.contains("Medication Name,Medication Type,Log Date,Time,Intake (mg),Total Remaining (mg),Action Type"))
+        
+        // Check medication name appears
+        #expect(csvContent.contains("Test Prescription"))
+        
+        // Check both action types appear
+        #expect(csvContent.contains("Dose Taken"))
+        #expect(csvContent.contains("Refill/Restock"))
+        
+        // Verify 3 log entries (plus header = 4 lines)
+        let lines = csvContent.components(separatedBy: "\n").filter { !$0.isEmpty }
+        #expect(lines.count == 4)
+        
+        // Clean up
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+    
+    @Test("Export single medication as JSON creates valid structure")
+    @MainActor
+    func testExportSingleMedicationAsJSON() throws {
+        let container = try createTestContainer()
+        let context = ModelContext(container)
+        
+        let med = createTestPrescriptionMed(context: context)
+        
+        // Add some logs
+        try med.takeMedication(dose: 1, unit: .pill, context: context)
+        try med.takeMedication(dose: 2, unit: .pill, context: context)
+        
+        // Export to JSON
+        guard let fileURL = MedicationLogExporter.exportLogs(for: med, format: .json) else {
+            Issue.record("Failed to export JSON")
+            return
+        }
+        
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: fileURL.path))
+        
+        // Read and parse JSON
+        let jsonData = try Data(contentsOf: fileURL)
+        let jsonArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]]
+        
+        #expect(jsonArray != nil)
+        #expect(jsonArray?.count == 2)
+        
+        // Verify first log entry structure
+        if let firstLog = jsonArray?.first {
+            #expect(firstLog["medicationId"] != nil)
+            #expect(firstLog["medicationName"] as? String == "Test Prescription")
+            #expect(firstLog["medicationType"] as? String == "Prescription")
+            #expect(firstLog["timestamp"] != nil)
+            #expect(firstLog["mgIntake"] as? Double == -20.0)
+            #expect(firstLog["actionType"] as? String == "dose")
+            #expect(firstLog["pillsIntake"] as? Double == -1.0)
+        }
+        
+        // Clean up
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+    
+    @Test("Export multiple medications as CSV")
+    @MainActor
+    func testExportMultipleMedicationsAsCSV() throws {
+        let container = try createTestContainer()
+        let context = ModelContext(container)
+        
+        let med1 = createTestPrescriptionMed(context: context)
+        let med2 = createTestNonPrescriptionMed(context: context)
+        
+        // Add logs to both
+        try med1.takeMedication(dose: 1, unit: .pill, context: context)
+        try med2.takeMedication(dose: 1, unit: .pill, context: context)
+        
+        // Export both
+        guard let fileURL = MedicationLogExporter.exportLogs(for: [med1, med2], format: .csv) else {
+            Issue.record("Failed to export multiple medications as CSV")
+            return
+        }
+        
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: fileURL.path))
+        
+        // Read content
+        let csvContent = try String(contentsOf: fileURL, encoding: .utf8)
+        
+        // Check both medication names appear
+        #expect(csvContent.contains("Test Prescription"))
+        #expect(csvContent.contains("Test Vitamin D"))
+        
+        // Check both medication types
+        #expect(csvContent.contains("Prescription"))
+        #expect(csvContent.contains("Non-Prescription"))
+        
+        // Verify filename indicates multiple medications
+        #expect(fileURL.lastPathComponent.contains("all"))
+        
+        // Clean up
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+    
+    @Test("Export multiple medications as JSON")
+    @MainActor
+    func testExportMultipleMedicationsAsJSON() throws {
+        let container = try createTestContainer()
+        let context = ModelContext(container)
+        
+        let med1 = createTestPrescriptionMed(context: context)
+        let med2 = createTestNonPrescriptionMed(context: context)
+        
+        // Add logs to both
+        try med1.takeMedication(dose: 1, unit: .pill, context: context)
+        try med2.takeMedication(dose: 2, unit: .pill, context: context)
+        try med1.refillMedication(context: context)
+        
+        // Export both
+        guard let fileURL = MedicationLogExporter.exportLogs(for: [med1, med2], format: .json) else {
+            Issue.record("Failed to export multiple medications as JSON")
+            return
+        }
+        
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: fileURL.path))
+        
+        // Read and parse JSON
+        let jsonData = try Data(contentsOf: fileURL)
+        let jsonArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]]
+        
+        #expect(jsonArray != nil)
+        #expect(jsonArray?.count == 3) // 3 total log entries
+        
+        // Verify both medications appear
+        let medNames = jsonArray?.compactMap { $0["medicationName"] as? String }
+        #expect(medNames?.contains("Test Prescription") == true)
+        #expect(medNames?.contains("Test Vitamin D") == true)
+        
+        // Clean up
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+    
+    @Test("Export medication with no logs creates file with header only (CSV)")
+    @MainActor
+    func testExportEmptyLogsCSV() throws {
+        let container = try createTestContainer()
+        let context = ModelContext(container)
+        
+        let med = createTestPrescriptionMed(context: context)
+        // Don't add any logs
+        
+        // Export to CSV
+        guard let fileURL = MedicationLogExporter.exportLogs(for: med, format: .csv) else {
+            Issue.record("Failed to export empty logs as CSV")
+            return
+        }
+        
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: fileURL.path))
+        
+        // Read content
+        let csvContent = try String(contentsOf: fileURL, encoding: .utf8)
+        
+        // Should only have header
+        let lines = csvContent.components(separatedBy: "\n").filter { !$0.isEmpty }
+        #expect(lines.count == 1) // Only header
+        #expect(csvContent.contains("Medication Name,Medication Type"))
+        
+        // Clean up
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+    
+    @Test("Export medication with no logs creates empty JSON array")
+    @MainActor
+    func testExportEmptyLogsJSON() throws {
+        let container = try createTestContainer()
+        let context = ModelContext(container)
+        
+        let med = createTestPrescriptionMed(context: context)
+        // Don't add any logs
+        
+        // Export to JSON
+        guard let fileURL = MedicationLogExporter.exportLogs(for: med, format: .json) else {
+            Issue.record("Failed to export empty logs as JSON")
+            return
+        }
+        
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: fileURL.path))
+        
+        // Read and parse JSON
+        let jsonData = try Data(contentsOf: fileURL)
+        let jsonArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]]
+        
+        #expect(jsonArray != nil)
+        #expect(jsonArray?.isEmpty == true)
+        
+        // Clean up
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+    
+    @Test("CSV export handles commas in medication names")
+    @MainActor
+    func testCSVExportEscapesCommas() throws {
+        let container = try createTestContainer()
+        let context = ModelContext(container)
+        
+        let med = Med(
+            name: "Test, Medication, With Commas",
+            medicationType: .prescription,
+            totalMgRemaining: 600.0,
+            initialPillCount: 30,
+            mgPerPill: 20.0
+        )
+        context.insert(med)
+        
+        try med.takeMedication(dose: 1, unit: .pill, context: context)
+        
+        // Export to CSV
+        guard let fileURL = MedicationLogExporter.exportLogs(for: med, format: .csv) else {
+            Issue.record("Failed to export CSV with commas")
+            return
+        }
+        
+        // Read content
+        let csvContent = try String(contentsOf: fileURL, encoding: .utf8)
+        
+        // Verify commas are replaced with semicolons or quoted
+        #expect(csvContent.contains("Test; Medication; With Commas") || csvContent.contains("\"Test, Medication, With Commas\""))
+        
+        // Clean up
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+    
+    @Test("Export preserves timestamp ordering")
+    @MainActor
+    func testExportPreservesTimestampOrdering() throws {
+        let container = try createTestContainer()
+        let context = ModelContext(container)
+        
+        let med = createTestPrescriptionMed(context: context)
+        
+        // Add logs with slight time differences
+        try med.takeMedication(dose: 1, unit: .pill, context: context)
+        try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        try med.takeMedication(dose: 1, unit: .pill, context: context)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        try med.takeMedication(dose: 1, unit: .pill, context: context)
+        
+        // Export to JSON (easier to verify ordering)
+        guard let fileURL = MedicationLogExporter.exportLogs(for: med, format: .json) else {
+            Issue.record("Failed to export JSON")
+            return
+        }
+        
+        // Read and parse JSON
+        let jsonData = try Data(contentsOf: fileURL)
+        let jsonArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]]
+        
+        #expect(jsonArray?.count == 3)
+        
+        // Verify timestamps are in chronological order
+        if let timestamps = jsonArray?.compactMap({ $0["timestamp"] as? String }) {
+            #expect(timestamps.count == 3)
+            // Timestamps should be sorted (they're in ISO8601 format which sorts lexically)
+            #expect(timestamps == timestamps.sorted())
+        }
+        
+        // Clean up
+        try? FileManager.default.removeItem(at: fileURL)
+    }
 
 }
+

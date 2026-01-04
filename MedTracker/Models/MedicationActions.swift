@@ -107,58 +107,48 @@ extension Med {
     }
     
     /// Calculates goal progress as a tuple (completed, target).
+    /// For "at least" goals, returns (doses, minimum).
+    /// For "no more than" goals, returns (doses, maximum).
+    /// For "both" goals, returns (doses, minimum) - use goalMaximum() for max.
     func goalProgress() -> (completed: Int, target: Int)? {
         guard let goal = intakeGoal else { return nil }
-        return (dosesInCurrentPeriod(), goal.targetDoses)
+        let doses = dosesInCurrentPeriod()
+        
+        switch goal.constraintType {
+        case .atLeast, .both:
+            return (doses, Int(goal.targetDoses))
+        case .noMoreThan:
+            return (doses, Int(goal.maximumDoses ?? goal.targetDoses))
+        }
     }
     
-    /// Calculates the adherence streak (consecutive periods meeting the goal).
-    func adherenceStreak() -> Int {
-        guard let goal = intakeGoal else { return 0 }
+    /// Returns the maximum doses for the goal (for "both" or "no more than" constraints).
+    func goalMaximum() -> Int? {
+        guard let goal = intakeGoal else { return nil }
         
-        let calendar = Calendar.current
-        let now = Date()
-        var streak = 0
-        var checkDate = now
-        
-        // Check backwards through time periods
-        for _ in 0..<365 { // Max 1 year check
-            let periodStart: Date
-            let periodEnd: Date
-            
-            switch goal.period {
-            case .perDay:
-                periodStart = calendar.startOfDay(for: checkDate)
-                periodEnd = calendar.date(byAdding: .day, value: 1, to: periodStart) ?? checkDate
-            case .perWeek:
-                guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: checkDate) else { 
-                    return streak // Exit early if we can't get interval
-                }
-                periodStart = weekInterval.start
-                periodEnd = weekInterval.end
-            case .perMonth:
-                guard let monthInterval = calendar.dateInterval(of: .month, for: checkDate) else { 
-                    return streak // Exit early if we can't get interval
-                }
-                periodStart = monthInterval.start
-                periodEnd = monthInterval.end
-            }
-            
-            // Count doses in this period
-            let dosesInPeriod = unwrappedLog.filter { log in
-                !log.isRefill && log.timestamp >= periodStart && log.timestamp < periodEnd
-            }.count
-            
-            if dosesInPeriod >= goal.targetDoses {
-                streak += 1
-                // Move to previous period
-                checkDate = calendar.date(byAdding: .day, value: -1, to: periodStart) ?? Date.distantPast
-            } else {
-                break
-            }
+        switch goal.constraintType {
+        case .noMoreThan, .both:
+            return Int(goal.maximumDoses ?? goal.targetDoses)
+        case .atLeast:
+            return nil
         }
+    }
+    
+    /// Checks if the current period meets the goal constraints.
+    func meetsGoalForPeriod(doses: Int) -> Bool {
+        guard let goal = intakeGoal else { return false }
+        let doseCount = Double(doses)
         
-        return streak
+        switch goal.constraintType {
+        case .atLeast:
+            return doseCount >= goal.targetDoses
+        case .noMoreThan:
+            return doseCount <= (goal.maximumDoses ?? goal.targetDoses)
+        case .both:
+            let meetsMin = doseCount >= goal.targetDoses
+            let meetsMax = doseCount <= (goal.maximumDoses ?? Double.greatestFiniteMagnitude)
+            return meetsMin && meetsMax
+        }
     }
 }
 

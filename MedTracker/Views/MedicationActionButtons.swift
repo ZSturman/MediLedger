@@ -26,7 +26,11 @@ struct MedicationActionButtons: View {
                     buttonHalfDose
                     buttonFullDose
                     buttonCustom
-                    buttonRefillRx
+                    if med.medicationType == .prescription {
+                        buttonRefillRx
+                    } else {
+                        buttonRestockBottle
+                    }
                 }
             } else {
                 // On larger screens: horizontal layout as before
@@ -34,7 +38,11 @@ struct MedicationActionButtons: View {
                     buttonHalfDose
                     buttonFullDose
                     buttonCustom
-                    buttonRefillRx
+                    if med.medicationType == .prescription {
+                        buttonRefillRx
+                    } else {
+                        buttonRestockBottle
+                    }
                     Spacer()
                 }
             }
@@ -92,6 +100,18 @@ struct MedicationActionButtons: View {
         }
     }
     
+    private var buttonRestockBottle: some View {
+        Button(action: restockBottle) {
+            HStack {
+                Image(systemName: "cart.fill")
+                Text("Restock Bottle")
+            }
+            .padding()
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(8)
+        }
+    }
+    
     // MARK: - Actions
     
     private func takeHalfMedication() {
@@ -115,6 +135,14 @@ struct MedicationActionButtons: View {
             try med.refillMedication()
         } catch {
             print("Error refilling medication: \(error)")
+        }
+    }
+    
+    private func restockBottle() {
+        do {
+            try med.restockBottle(quantity: med.initialPillCount)
+        } catch {
+            print("Error restocking bottle: \(error)")
         }
     }
 }

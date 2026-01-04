@@ -28,7 +28,7 @@ struct Provider: AppIntentTimelineProvider {
     }
     
     func timeline(for configuration: SelectMedicationIntent, in context: Context) async -> Timeline<SimpleEntry> {
-        let medication: MedEntity
+        var medication: MedEntity
         
         if let configuredMed = configuration.chosenMedication {
             medication = configuredMed
@@ -43,6 +43,8 @@ struct Provider: AppIntentTimelineProvider {
                         id: med.id,
                         name: med.name,
                         medicationType: med.medicationType,
+                        pillForm: med.pillForm,
+                        nextDoseTime: med.calculatedNextDoseTime,
                         lastFilledOn: med.lastFilledOn,
                         nextFillDate: med.nextFillDate,
                         totalMgRemaining: med.totalMgRemaining,
@@ -54,14 +56,15 @@ struct Provider: AppIntentTimelineProvider {
                         pillsRemaining: med.pillsRemaining,
                         refillsRemaining: med.refillsRemaining,
                         goalProgressCompleted: goalProgress?.completed,
-                        goalProgressTarget: goalProgress?.target,
-                        adherenceStreak: med.intakeGoal != nil ? med.adherenceStreak() : nil
+                        goalProgressTarget: goalProgress?.target
                     )
                 } else {
                     medication = MedEntity(
                         id: UUID().uuidString,
                         name: "Default Medication",
                         medicationType: .prescription,
+                        pillForm: .tablet,
+                        nextDoseTime: nil,
                         lastFilledOn: Date(),
                         nextFillDate: Date(),
                         totalMgRemaining: 0.0,
@@ -73,8 +76,7 @@ struct Provider: AppIntentTimelineProvider {
                         pillsRemaining: 0.0,
                         refillsRemaining: nil,
                         goalProgressCompleted: nil,
-                        goalProgressTarget: nil,
-                        adherenceStreak: nil
+                        goalProgressTarget: nil
                     )
                 }
             } catch {
@@ -82,6 +84,8 @@ struct Provider: AppIntentTimelineProvider {
                     id: UUID().uuidString,
                     name: "Default Medication",
                     medicationType: .prescription,
+                    pillForm: .tablet,
+                    nextDoseTime: nil,
                     lastFilledOn: Date(),
                     nextFillDate: Date(),
                     totalMgRemaining: 0.0,
@@ -93,9 +97,26 @@ struct Provider: AppIntentTimelineProvider {
                     pillsRemaining: 0.0,
                     refillsRemaining: nil,
                     goalProgressCompleted: nil,
-                    goalProgressTarget: nil,
-                    adherenceStreak: nil
+                    goalProgressTarget: nil
                 )
+            }
+        }
+        
+        // MARK: - Apply Optimistic Updates
+        // Check for pending updates and apply if valid for this medication
+        if let pendingUpdate = sharedUserDefaults?.getPendingUpdate(),
+           pendingUpdate.medicationId == medication.id {
+            // Apply optimistic values to the medication entity
+            medication.totalMgRemaining = pendingUpdate.updatedTotalMgRemaining
+            medication.pillsRemaining = pendingUpdate.updatedPillsRemaining
+            
+            // Recalculate pillsPerDayLeft with updated values
+            if medication.medicationType == .prescription,
+               let nextFill = medication.nextFillDate {
+                let daysLeft = nextFill.timeIntervalSince(Date()) / 86400.0
+                if daysLeft > 0 {
+                    medication.pillsPerDayLeft = (pendingUpdate.updatedPillsRemaining / daysLeft * 10).rounded() / 10
+                }
             }
         }
 
@@ -116,9 +137,16 @@ struct Provider: AppIntentTimelineProvider {
         } catch {
             print("Error initializing ModelContainer: \(error)")
         }
+        
+        // Create updated configuration with potentially modified medication
+        let updatedConfiguration = SelectMedicationIntent(
+            chosenMedication: medication,
+            primaryWidgetDisplay: configuration.primaryWidgetDisplay,
+            secondaryWidgetDisplay: configuration.secondaryWidgetDisplay
+        )
 
         let currentDate = Date()
-        let entry = SimpleEntry(date: currentDate, configuration: configuration, logs: fetchedLog)
+        let entry = SimpleEntry(date: currentDate, configuration: updatedConfiguration, logs: fetchedLog)
         return Timeline(entries: [entry], policy: .atEnd)
     }
 }

@@ -1,0 +1,75 @@
+{
+  "assetsFolder" : {
+    "path" : "\/Users\/zacharysturman\/Downloads\/PORTFOLIO\/Technology\/MedTracker\/AssetFolder"
+  },
+  "category" : "Software",
+  "createdAt" : 778175671.555743,
+  "description" : "MediLedger is designed around a simple idea: most of what you need to do with your medication shouldn’t require opening an app. With interactive widgets, you can log a full or half dose, check how many pills you have left, see when your refill is coming up, and set up different widgets for different medications. The app handles both prescription and non-prescription meds, tracks strength and dosage, and keeps a full history of what you’ve taken. Everything syncs through SwiftData across iPhone, iPad, and Mac, and it works offline when it needs to. You can customize what each widget shows, set up alerts for refills, and rely on automatic calculations to keep your supply accurate without any extra effort.",
+  "domain" : "Technology",
+  "featured" : true,
+  "filePath" : "file:\/\/\/Users\/zacharysturman\/Downloads\/PORTFOLIO\/Technology\/MedTracker\/MediLedger.folio\/",
+  "id" : "B9E63C92-6B9D-499C-A2B7-D72A7DA412EE",
+  "images" : {
+    "banner" : {
+      "customAspectRatio" : [
+        1536,
+        1024
+      ],
+      "id" : "452BF123-F018-4D12-8C0C-0C4960BA1924",
+      "path" : "banner.png"
+    },
+    "heroBanner" : {
+      "customAspectRatio" : [
+        1536,
+        1024
+      ],
+      "id" : "28B7E477-CD85-4A32-B27E-8299FD0495E3",
+      "path" : "heroBanner.png"
+    },
+    "poster" : {
+      "id" : "AC03868E-7EED-4AA4-A51C-41EAF0DCFD5A",
+      "path" : "poster.png"
+    },
+    "thumbnail" : {
+      "customAspectRatio" : [
+        1024,
+        1024
+      ],
+      "id" : "D292E149-BDDD-4421-862B-7023B7AD1B29",
+      "path" : "thumbnail.png"
+    }
+  },
+  "isPublic" : true,
+  "mediums" : [
+    "Mobile"
+  ],
+  "phase" : "live",
+  "requiresFollowUp" : false,
+  "resources" : [
+    {
+      "category" : "app",
+      "label" : "App Store Download",
+      "type" : "iosAppStore",
+      "url" : "https:\/\/apps.apple.com\/us\/app\/mediledger\/id6744004933"
+    },
+    {
+      "category" : "repository",
+      "label" : "repo",
+      "type" : "github",
+      "url" : "https:\/\/github.com\/ZSturman\/MediLedger"
+    }
+  ],
+  "status" : "done",
+  "story" : "This started as a project to see how far I could push a widget-first approach. I wanted something simple enough to test the idea but useful enough that the effort felt worth it. Medication tracking made sense—it’s structured, it matters day to day, and most interactions are quick. I spent a lot of time figuring out how much a widget could handle: what buttons made sense, what info people would need at a glance, and how to keep things clean without stripping away control. The goal wasn’t to build a perfect app; it was to learn what happens when the widget becomes the main interaction surface. Eventually, I want this to connect with Trackables so all these small bits of daily data live in one place and start forming patterns that actually help people. It’s still early, but it feels like the right direction.",
+  "subtitle" : "Widget-first medication tracking built for everyday reliability.",
+  "summary" : "MediLedger is a medication management tool built around interactive Home Screen widgets. It lets users log doses, track supply, monitor refills, and sync data across all Apple devices. Designed for simplicity and precision, it shifts medication tracking from the app itself to the widget, making daily adherence faster and more accessible.",
+  "tags" : [
+    "iOS",
+    "Swift"
+  ],
+  "title" : "MediLedger",
+  "topics" : [
+    "Health"
+  ],
+  "updatedAt" : 785264362.30178
+}

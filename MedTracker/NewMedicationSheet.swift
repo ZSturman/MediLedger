@@ -17,7 +17,7 @@ struct NewMedicationSheet: View {
     @State private var desc: String = ""
     @State private var medicationType: MedicationType = .prescription
     @State private var pillMg: Double = 20
-    @State private var pillForm: String = ""
+    @State private var pillForm: MedicationForm = .tablet
 
     // MARK: - Prescription-Specific
     @State private var lastFilledOn: Date = Date()
@@ -44,13 +44,22 @@ struct NewMedicationSheet: View {
     @State private var dailyDosageUnit: DosageUnit = .pill
     @State private var totalMgRemaining: Double = 0
     @State private var differentFromRemaining: Bool = false
+    @State private var remainingAmountUnit: DosageUnit = .pill
+    @State private var remainingAmountValue: Double = 0
 
     // MARK: - Goal Tracking
     @State private var hasGoal: Bool = false
-    @State private var goalTargetDoses: Int = 1
+    @State private var goalTargetDoses: Double = 1.0
+    @State private var goalMaximumDoses: Double = 3.0
+    @State private var goalConstraintType: GoalConstraintType = .atLeast
     @State private var goalPeriod: GoalPeriod = .perDay
     @State private var goalSpecificDays: Set<Weekday> = []
     @State private var goalStartDate: Date = Date()
+    @State private var goalTimesOfDay: [DateComponents] = []
+    
+    // MARK: - Next Dose Time
+    @State private var hasNextDoseTime: Bool = false
+    @State private var nextDoseTime: Date = Date()
 
     // MARK: - Progressive Disclosure
     @State private var showAdvancedPrescriptionInfo: Bool = false
@@ -73,6 +82,18 @@ struct NewMedicationSheet: View {
             return initialPillCount * pillMg
         } else {
             return Double(servingsPerContainer * servingSize) * pillMg
+        }
+    }
+    
+    private func convertToMg(_ amount: Double, unit: DosageUnit) -> Double {
+        switch unit {
+        case .mg:
+            return amount
+        case .pill:
+            return amount * pillMg
+        case .ml, .spray, .drop, .puff, .application:
+            // For liquid/spray/drop forms, assume each unit equals the mgPerPill value
+            return amount * pillMg
         }
     }
     
@@ -103,7 +124,11 @@ struct NewMedicationSheet: View {
                             .keyboardType(.decimalPad)
                     }
                     
-                    TextField("Form (e.g., Tablet, Capsule, Gummy)", text: $pillForm)
+                    Picker("Form", selection: $pillForm) {
+                        ForEach(MedicationForm.allCases) { form in
+                            Text(form.rawValue).tag(form)
+                        }
+                    }
                 }
                 
                 // MARK: - Prescription-Specific Sections
@@ -221,11 +246,26 @@ struct NewMedicationSheet: View {
                     
                     if differentFromRemaining {
                         HStack {
-                            Text("Remaining (mg):")
+                            Text("Amount:")
                             Spacer()
-                            TextField("", value: $totalMgRemaining, format: .number)
+                            TextField("", value: $remainingAmountValue, format: .number)
                                 .multilineTextAlignment(.trailing)
                                 .keyboardType(.decimalPad)
+                                .frame(width: 80)
+                        }
+                        
+                        Picker("Unit", selection: $remainingAmountUnit) {
+                            ForEach(DosageUnit.allCases) { unit in
+                                Text(unit.rawValue).tag(unit)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        
+                        HStack {
+                            Text("Equals:")
+                            Spacer()
+                            Text("\(convertToMg(remainingAmountValue, unit: remainingAmountUnit), specifier: "%.1f") mg")
+                                .foregroundColor(.secondary)
                         }
                     } else {
                         HStack {
@@ -242,10 +282,35 @@ struct NewMedicationSheet: View {
                     Toggle("Set Intake Goal", isOn: $hasGoal)
                     
                     if hasGoal {
-                        HStack {
-                            Text("Target Doses:")
-                            Spacer()
-                            Stepper("\(goalTargetDoses)", value: $goalTargetDoses, in: 1...10)
+                        Picker("Constraint Type", selection: $goalConstraintType) {
+                            ForEach(GoalConstraintType.allCases) { type in
+                                Text(type.rawValue).tag(type)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        
+                        if goalConstraintType == .atLeast || goalConstraintType == .both {
+                            HStack {
+                                Text("At Least:")
+                                Spacer()
+                                TextField("", value: $goalTargetDoses, format: .number)
+                                    .multilineTextAlignment(.trailing)
+                                    .keyboardType(.decimalPad)
+                                    .frame(width: 60)
+                                Text("doses")
+                            }
+                        }
+                        
+                        if goalConstraintType == .noMoreThan || goalConstraintType == .both {
+                            HStack {
+                                Text("No More Than:")
+                                Spacer()
+                                TextField("", value: $goalMaximumDoses, format: .number)
+                                    .multilineTextAlignment(.trailing)
+                                    .keyboardType(.decimalPad)
+                                    .frame(width: 60)
+                                Text("doses")
+                            }
                         }
                         
                         Picker("Period", selection: $goalPeriod) {
@@ -286,6 +351,15 @@ struct NewMedicationSheet: View {
                         DatePicker("Goal Start Date", selection: $goalStartDate, displayedComponents: .date)
                     }
                 }
+                
+                // MARK: - Next Dose Time (Optional)
+                Section(header: Text("Scheduling")) {
+                    Toggle("Set Next Dose Time", isOn: $hasNextDoseTime)
+                    
+                    if hasNextDoseTime {
+                        DatePicker("Next Dose", selection: $nextDoseTime, displayedComponents: [.date, .hourAndMinute])
+                    }
+                }
             }
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle("New Medication")
@@ -306,13 +380,15 @@ struct NewMedicationSheet: View {
     
     private func addMedication() {
         withAnimation {
-            let remaining = differentFromRemaining ? totalMgRemaining : computedTotalRemaining
+            let remaining = differentFromRemaining ? convertToMg(remainingAmountValue, unit: remainingAmountUnit) : computedTotalRemaining
             
             let goal: IntakeGoal? = hasGoal ? IntakeGoal(
                 targetDoses: goalTargetDoses,
+                maximumDoses: goalConstraintType == .noMoreThan || goalConstraintType == .both ? goalMaximumDoses : nil,
+                constraintType: goalConstraintType,
                 period: goalPeriod,
                 specificDays: goalSpecificDays.isEmpty ? nil : goalSpecificDays,
-                timesOfDay: nil,
+                timesOfDay: goalTimesOfDay.isEmpty ? nil : goalTimesOfDay,
                 startDate: goalStartDate
             ) : nil
             
@@ -320,7 +396,8 @@ struct NewMedicationSheet: View {
                 name: name,
                 desc: desc.isEmpty ? nil : desc,
                 medicationType: medicationType,
-                pillForm: pillForm.isEmpty ? nil : pillForm,
+                pillForm: pillForm,
+                nextDoseTime: hasNextDoseTime ? nextDoseTime : nil,
                 lastFilledOn: medicationType == .prescription ? lastFilledOn : nil,
                 nextFillDate: medicationType == .prescription ? finalNextFillDate : nil,
                 totalMgRemaining: remaining,

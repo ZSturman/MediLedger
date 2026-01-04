@@ -14,7 +14,7 @@ struct MedicationGoalConfigView: View {
     @Environment(\.modelContext) private var modelContext
     
     @State private var hasGoal: Bool = false
-    @State private var goalTargetDoses: Int = 1
+    @State private var goalTargetDoses: Double = 1
     @State private var goalPeriod: GoalPeriod = .perDay
     @State private var goalSpecificDays: Set<Weekday> = []
     @State private var goalStartDate: Date = Date()
@@ -29,7 +29,7 @@ struct MedicationGoalConfigView: View {
                         HStack {
                             Text("Target Doses:")
                             Spacer()
-                            Stepper("\(goalTargetDoses)", value: $goalTargetDoses, in: 1...10)
+                            Stepper("\(Int(goalTargetDoses))", value: $goalTargetDoses, in: 1...10, step: 1)
                         }
                         
                         Picker("Period", selection: $goalPeriod) {
@@ -74,7 +74,7 @@ struct MedicationGoalConfigView: View {
                     Text("Intake Goal")
                 } footer: {
                     if hasGoal {
-                        Text("Track your medication adherence with a custom goal. You'll see progress and streak information.")
+                        Text("Track your medication adherence with a custom goal. You'll see progress information.")
                     } else {
                         Text("Set a goal to track how consistently you take this medication.")
                     }
@@ -139,10 +139,6 @@ struct MedicationGoalStatusCard: View {
         med.goalProgress()
     }
     
-    var adherenceStreak: Int {
-        med.adherenceStreak()
-    }
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -170,15 +166,6 @@ struct MedicationGoalStatusCard: View {
                     
                     ProgressView(value: Double(progress.completed), total: Double(progress.target))
                         .tint(progress.completed >= progress.target ? .green : .accentColor)
-                    
-                    if adherenceStreak > 0 {
-                        HStack {
-                            Image(systemName: "flame.fill")
-                                .foregroundColor(.orange)
-                            Text("Streak: \(adherenceStreak) \(goal.period == .perDay ? "days" : goal.period == .perWeek ? "weeks" : "months")")
-                                .font(.subheadline)
-                        }
-                    }
                     
                     if let days = goal.specificDays, !days.isEmpty {
                         HStack {
